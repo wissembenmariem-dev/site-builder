@@ -9,6 +9,38 @@ import { contactPage, site } from "@/content/site";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    setStatus("sending");
+    setError("");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.get("name"),
+          email: form.get("email"),
+          company: form.get("company"),
+          phone: form.get("phone"),
+          message: form.get("message"),
+          interests: form.getAll("interest"),
+          website: form.get("website"),
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "Something went wrong");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    }
+  }
 
   return (
     <>
@@ -93,10 +125,7 @@ export default function ContactPage() {
               </div>
             ) : (
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSubmitted(true);
-                }}
+                onSubmit={handleSubmit}
                 className="rounded-2xl border border-white/10 bg-white/[0.015] p-8 md:p-10 space-y-7"
                 aria-label="Contact form"
               >
@@ -132,12 +161,20 @@ export default function ContactPage() {
                   placeholder={contactPage.messagePlaceholder}
                 />
 
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+
+                {status === "error" && (
+                  <p role="alert" className="text-sm text-red-300">
+                    {error}. You can also write to {site.contact.email}.
+                  </p>
+                )}
+
                 <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
                   <p className="text-xs text-[var(--muted)]">
                     {contactPage.consent}
                   </p>
-                  <Button type="submit" size="md" variant="primary" magnetic>
-                    Send message
+                  <Button type="submit" size="md" variant="primary" magnetic disabled={status === "sending"}>
+                    {status === "sending" ? "Sending…" : "Send message"}
                   </Button>
                 </div>
               </form>

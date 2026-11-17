@@ -4,7 +4,7 @@ Content-driven Next.js template for professional services websites. Brand, navig
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Framer Motion · Lucide icons
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Framer Motion · Lucide icons · Vitest
 
 ## Features
 
@@ -12,8 +12,8 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Framer Mo
 - Single source of truth in `src/content`: change a service or a case study once and every page, card and footer link follows
 - Motion system: scroll and text reveals, magnetic buttons, infinite logo slider, animated counters, custom cursor, all respecting `prefers-reduced-motion`
 - Bento grid of featured services with icons resolved from a typed registry
-- Accessible contact form with service selection
-- Fully static output, typed metadata per page
+- Contact form with validation, honeypot spam trap and delivery through Resend from a Next.js route handler
+- Static pages with typed metadata, plus a single serverless endpoint for the form
 
 ## Customize
 
@@ -43,10 +43,14 @@ src
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
-npm run build
 npm run lint
+npm test
+npm run build
 ```
+
+The contact form needs `RESEND_API_KEY`, `CONTACT_FROM` (a sender on a domain verified in Resend) and `CONTACT_TO`. Without them the endpoint answers 503 and the form shows the fallback email address.
 
 `netlify.toml` is included for one-step deployment on Netlify.
 
